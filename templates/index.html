@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOLD Price Prediction</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url("https://images3.alphacoders.com/881/thumb-1920-881290.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: "Poppins", sans-serif;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 900px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-weight: 600;
+            color: #222;
+        }
+        table {
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th {
+            background-color: #FFD700;
+            color: black;
+        }
+        td, th {
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 25px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* ✅ Responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+                height: auto;
+            }
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+            table {
+                font-size: 12px;
+            }
+            .logo {
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://bmsit.ac.in/cert/public/assets/images/bmslogo.png" alt="Logo" class="logo">
+        <h1 class="mt-3">GOLD Price Prediction</h1>
+        <form id="prediction-form" class="mt-4">
+            <div class="form-group">
+                <label for="date">Enter Date</label>
+                <input type="date" class="form-control" id="date" name="date" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Predict</button>
+        </form>
+
+        <div id="predictions" class="mt-4"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#prediction-form').on('submit', function(event) {
+                event.preventDefault();
+                var date = $('#date').val();
+                $.ajax({
+                    url: '/predict',
+                    method: 'POST',
+                    data: { date: date },
+                    success: function(response) {
+                        // ✅ Format and round numbers
+                        function formatCurrency(value, symbol) {
+                            return symbol + parseFloat(value).toFixed(2);
+                        }
+                        function calculateAccuracy(predicted, actual) {
+                            return ((predicted / actual) * 100).toFixed(2);
+                        }
+
+                        // ✅ Build the results table
+                        var table = '<h3>Predicted GOLD Prices (in INR)</h3>';
+                        table += '<table class="table table-bordered table-striped">';
+                        table += '<thead><tr><th>Model Name</th><th>Predicted Value (USD)</th><th>Predicted Value (INR)</th><th>Actual Value (INR)</th><th>Accuracy (%)</th></tr></thead>';
+                        table += '<tbody>';
+
+                        table += '<tr><td>KNN</td><td>' + formatCurrency(response.gold_price_model1_usd, "$") + '</td><td>' + formatCurrency(response.gold_price_model1_inr, "₹") + '</td><td>' + formatCurrency(response.actual_value_per_pennyweight_inr, "₹") + '</td><td>' + calculateAccuracy(response.gold_price_model1_inr, response.actual_value_per_pennyweight_inr) + '%</td></tr>';
+
+                        table += '<tr><td>Random Forest</td><td>' + formatCurrency(response.gold_price_model2_usd, "$") + '</td><td>' + formatCurrency(response.gold_price_model2_inr, "₹") + '</td><td>' + formatCurrency(response.actual_value_per_pennyweight_inr, "₹") + '</td><td>' + calculateAccuracy(response.gold_price_model2_inr, response.actual_value_per_pennyweight_inr) + '%</td></tr>';
+
+                        table += '<tr><td>Decision Tree</td><td>' + formatCurrency(response.gold_price_model3_usd, "$") + '</td><td>' + formatCurrency(response.gold_price_model3_inr, "₹") + '</td><td>' + formatCurrency(response.actual_value_per_pennyweight_inr, "₹") + '</td><td>' + calculateAccuracy(response.gold_price_model3_inr, response.actual_value_per_pennyweight_inr) + '%</td></tr>';
+
+                        table += '</tbody></table>';
+                        $('#predictions').html(table);
+                    },
+                    error: function() {
+                        $('#predictions').html('<p class="text-danger">Error: Unable to get prediction. Please try again later.</p>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
